@@ -18,7 +18,7 @@ spring:
     show-sql: true
     properties:
       hibernate:
-        ddl-auto: create-drop
+        ddl-auto: validate
         format_sql: true
 
 security:
@@ -47,7 +47,7 @@ spring:
     show-sql: true
     properties:
       hibernate:
-        ddl-auto: update
+        ddl-auto: create-drop
         format_sql: true
 
 security:
