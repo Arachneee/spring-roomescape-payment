@@ -41,10 +41,7 @@ spring:
       on-profile: test
 
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.1.123:3306/roomescape?serverTimezone=Asia/Seoul
-    username: root
-    password: 1q2w3e4r!
+    url: jdbc:h2:mem:database
   jpa:
     defer-datasource-initialization: true
     show-sql: true
