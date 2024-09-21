@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import roomescape.domain.member.Member;
 import roomescape.domain.member.MemberRepository;
@@ -20,13 +21,14 @@ import roomescape.domain.reservation.repository.ThemeRepository;
 import roomescape.domain.reservation.repository.WaitingMemberRepository;
 import roomescape.exception.AuthorizationException;
 import roomescape.exception.RoomEscapeBusinessException;
-import roomescape.service.dto.BookedMemberResponse;
-import roomescape.service.dto.UserBookedReservationResponse;
-import roomescape.service.dto.LoginMember;
 import roomescape.service.dto.AdminReservationBookedResponse;
+import roomescape.service.dto.BookedMemberResponse;
+import roomescape.service.dto.LoginMember;
 import roomescape.service.dto.ReservationConditionRequest;
 import roomescape.service.dto.ReservationRequest;
 import roomescape.service.dto.ReservationResponse;
+import roomescape.service.dto.ReservationSaveRequest;
+import roomescape.service.dto.UserBookedReservationResponse;
 import roomescape.service.dto.WaitingRankResponse;
 import roomescape.service.dto.WaitingResponse;
 
@@ -56,20 +58,23 @@ public class ReservationService {
         this.memberRepository = memberRepository;
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public ReservationResponse saveReservation(ReservationRequest reservationRequest) {
         Member member = findMemberById(reservationRequest.memberId());
-        Reservation reservation = findReservation(reservationRequest.date(), reservationRequest.timeId(), reservationRequest.themeId());
+        Reservation reservation = findReservation(
+                reservationRequest.date(), reservationRequest.timeId(), reservationRequest.themeId());
 
         if (reservation.isBooked()) {
+            System.out.println("########## TRUE");
             WaitingMember waitingMember = reservation.addWaiting(member);
 
             waitingMemberRepository.save(waitingMember);
             return ReservationResponse.createByWaiting(waitingMember);
         }
 
+        System.out.println("########## FALSE");
         BookedMember bookedMember = reservation.book(member);
-        bookedMemberRepository.save(bookedMember);
+        bookedMemberRepository.saveAndFlush(bookedMember);
         return ReservationResponse.createByBooked(bookedMember);
     }
 
@@ -96,7 +101,8 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public List<AdminReservationBookedResponse> findBookedReservationsByCondition(
-            ReservationConditionRequest reservationConditionRequest) {
+            ReservationConditionRequest reservationConditionRequest
+    ) {
         List<BookedReservationReadOnly> reservations = bookedMemberRepository.findByConditions(
                 reservationConditionRequest.dateFrom(),
                 reservationConditionRequest.dateTo(),
@@ -146,7 +152,7 @@ public class ReservationService {
         Theme theme = findThemeById(themeId);
 
         return reservationRepository.findByDateAndTimeAndTheme(date, time, theme)
-                .orElseGet(() -> reservationRepository.save(new Reservation(date, time, theme)));
+                .orElseThrow(() -> new RoomEscapeBusinessException("예약 슬롯이 존재하지 않습니다."));
     }
 
     private Member findMemberById(Long memberId) {
@@ -162,6 +168,23 @@ public class ReservationService {
     private ReservationTime findTimeById(Long id) {
         return reservationTimeRepository.findById(id)
                 .orElseThrow(() -> new RoomEscapeBusinessException("존재하지 않는 예약 시간입니다."));
+    }
+
+    @Transactional
+    public Long saveReservationSlot(ReservationSaveRequest request) {
+        ReservationTime time = findTimeById(request.timeId());
+        Theme theme = findThemeById(request.themeId());
+        Reservation reservation = new Reservation(request.date(), time, theme);
+
+        return reservationRepository.save(reservation).getId();
+    }
+
+    @Transactional
+    public void deleteReservation(Long id) {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new RoomEscapeBusinessException("예약 슬롯이 존재하지 않습니다."));
+
+        reservationRepository.delete(reservation);
     }
 }
 

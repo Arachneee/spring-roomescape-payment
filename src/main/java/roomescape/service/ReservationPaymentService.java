@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import roomescape.service.dto.BookedMemberResponse;
 import roomescape.service.dto.BookedPaymentRequest;
 import roomescape.service.dto.BookedPaymentResponse;
+import roomescape.service.dto.ReservationSaveRequest;
 import roomescape.service.dto.UserBookedReservationResponse;
 import roomescape.service.dto.PaymentApproveRequest;
 import roomescape.service.dto.PaymentResponse;
@@ -95,5 +96,15 @@ public class ReservationPaymentService {
                         )
                 )
                 .toList();
+    }
+
+    @Transactional
+    public Long saveReservation(ReservationSaveRequest request) {
+        return reservationService.saveReservationSlot(request);
+    }
+
+    @Transactional
+    public void deleteReservation(Long id) {
+        reservationService.deleteReservation(id);
     }
 }

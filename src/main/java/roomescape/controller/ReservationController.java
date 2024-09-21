@@ -5,7 +5,9 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,6 +19,7 @@ import roomescape.service.dto.BookedPaymentRequest;
 import roomescape.service.dto.LoginMember;
 import roomescape.service.dto.ReservationPaymentRequest;
 import roomescape.service.dto.ReservationResponse;
+import roomescape.service.dto.ReservationSaveRequest;
 import roomescape.service.dto.ReservationStatus;
 import roomescape.service.dto.UserReservationResponse;
 
@@ -56,6 +59,18 @@ public class ReservationController {
     @PostMapping("/reservations/booked/payment")
     public ResponseEntity<Void> liquidateReservation(@RequestBody @Valid BookedPaymentRequest bookedPaymentRequest) {
         reservationPaymentService.liquidateReservation(bookedPaymentRequest);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/reservations")
+    public ResponseEntity<Void> saverReservation(@RequestBody @Valid ReservationSaveRequest request) {
+        Long id = reservationPaymentService.saveReservation(request);
+        return ResponseEntity.created(URI.create(id.toString())).build();
+    }
+
+    @DeleteMapping("/reservations/{id}")
+    public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {
+        reservationPaymentService.deleteReservation(id);
         return ResponseEntity.noContent().build();
     }
 }
