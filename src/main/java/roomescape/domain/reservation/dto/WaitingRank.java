@@ -1,9 +1,19 @@
 package roomescape.domain.reservation.dto;
 
-import roomescape.domain.reservation.WaitingMember;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
-public record WaitingRank(
-        WaitingMember waitingMember,
-        Long rank
-) {
+public interface WaitingRank {
+
+    Long getId();
+
+    String getMemberName();
+
+    String getThemeName();
+
+    LocalDate getDate();
+
+    LocalTime getStartAt();
+
+    Long getRank();
 }

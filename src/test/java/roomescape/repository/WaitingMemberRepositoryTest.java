@@ -29,7 +29,7 @@ class WaitingMemberRepositoryTest extends IntegrationTestSupport {
         // given
         Member member = memberRepository.findById(1L).get();
         // when
-        List<WaitingRank> waitingReservations = waitingMemberRepository.findRankByMemberAndDateGreaterThanEqual(member,
+        List<WaitingRank> waitingReservations = waitingMemberRepository.findRankByMemberAndDateGreaterThanEqual(member.getId(),
                 LocalDate.parse("2024-05-30"));
 
         // then
