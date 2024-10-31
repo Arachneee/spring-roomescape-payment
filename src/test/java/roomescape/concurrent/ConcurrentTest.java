@@ -5,13 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.LongStream;
 import org.apache.http.HttpHeaders;
 import org.apache.http.entity.ContentType;
 import org.junit.jupiter.api.AfterEach;
@@ -19,25 +17,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-public class ConcurrentTest {
+class ConcurrentTest {
 
     private static final String BASE_URI = "http://localhost:8080";
-    /**
-     * 발급 수량 제한이 있는 쿠폰의 아이디
-     */
-    private static final Long USE_LIMIT_COUPON_ID = 10000L;
-    /**
-     * 동시에 사용 요청하는 스레드의 개수
-     */
     private static final int CONCURRENT_REQUEST_COUNT = 100;
-    /**
-     * 쿠폰을 가진 회원 아이디
-     */
-    private static final Long MEMBER_ID = 1L;
-    /**
-     * 회원에게 발급된 회원 쿠폰의 아이디 목록
-     */
-    private static final List<Long> MEMBER_COUPON_IDS = LongStream.rangeClosed(500001L, 500020L).boxed().toList();
 
     Long reservationId;
 
@@ -94,7 +77,6 @@ public class ConcurrentTest {
 
     private static void reservate(AtomicInteger waitingCount, AtomicInteger bookedCount, AtomicBoolean requestStart, int memberId) {
         while (requestStart.get() == false) {
-            // 요청을 시작하기 전까지 대기한다.
         }
         String requestBody = "{ \"date\": \"2026-01-10\""
                              + ", \"timeId\": " + 1

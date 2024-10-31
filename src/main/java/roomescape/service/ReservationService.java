@@ -65,14 +65,12 @@ public class ReservationService {
                 reservationRequest.date(), reservationRequest.timeId(), reservationRequest.themeId());
 
         if (reservation.isBooked()) {
-            System.out.println("########## TRUE");
             WaitingMember waitingMember = reservation.addWaiting(member);
 
             waitingMemberRepository.save(waitingMember);
             return ReservationResponse.createByWaiting(waitingMember);
         }
 
-        System.out.println("########## FALSE");
         BookedMember bookedMember = reservation.book(member);
         bookedMemberRepository.saveAndFlush(bookedMember);
         return ReservationResponse.createByBooked(bookedMember);
@@ -134,7 +132,7 @@ public class ReservationService {
     @Transactional(readOnly = true)
     public List<WaitingRankResponse> findWaitingRanksAfterDate(Long memberId, LocalDate date) {
         Member member = findMemberById(memberId);
-        return waitingMemberRepository.findRankByMemberAndDateGreaterThanEqual(member, date).stream()
+        return waitingMemberRepository.findRankByMemberAndDateGreaterThanEqual(member.getId(), date).stream()
                 .map(WaitingRankResponse::from)
                 .toList();
     }
@@ -152,7 +150,7 @@ public class ReservationService {
         Theme theme = findThemeById(themeId);
 
         return reservationRepository.findByDateAndTimeAndTheme(date, time, theme)
-                .orElseThrow(() -> new RoomEscapeBusinessException("예약 슬롯이 존재하지 않습니다."));
+                .orElseGet(() -> reservationRepository.save(new Reservation(date, time, theme)));
     }
 
     private Member findMemberById(Long memberId) {
